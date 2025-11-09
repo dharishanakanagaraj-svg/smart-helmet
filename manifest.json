@@ -1,37 +1,49 @@
 {
   "name": "Smart Helmet Emergency Alert System",
   "short_name": "Smart Helmet",
+  "id": "com.smarthelmet.emergency.alert",
   "description": "Emergency alert system for motorcycle helmets with GPS tracking and SMS notifications",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "background_color": "#FFFFFF",
   "theme_color": "#2C3E50",
   "orientation": "portrait-primary",
+  "scope": ".",
   "icons": [
     {
-      "src": "data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'&gt;&lt;rect fill='%232C3E50' width='192' height='192' rx='45'/&gt;&lt;text x='96' y='140' font-size='120' fill='%2300D084' text-anchor='middle' font-weight='bold'&gt;SH&lt;/text&gt;&lt;/svg&gt;",
+      "src": "icons/icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'&gt;&lt;rect fill='%232C3E50' width='512' height='512' rx='120'/&gt;&lt;text x='256' y='380' font-size='320' fill='%2300D084' text-anchor='middle' font-weight='bold'&gt;SH&lt;/text&gt;&lt;/svg&gt;",
+      "src": "icons/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "type": "image/png",
+      "purpose": "any"
     }
-  ],
-  "categories": [
-    "safety",
-    "utilities"
   ],
   "screenshots": [
     {
-      "src": "data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'&gt;&lt;rect fill='%23667eea' width='540' height='720'/&gt;&lt;text x='270' y='360' font-size='48' fill='white' text-anchor='middle'&gt;Smart Helmet Alert&lt;/text&gt;&lt;/svg&gt;",
-      "sizes": "540x720",
-      "type": "image/svg+xml",
+      "src": "icons/screenshot-540x960.png",
+      "sizes": "540x960",
+      "type": "image/png",
       "form_factor": "narrow"
+    }
+  ],
+  "categories": ["emergency", "safety", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Emergency Alert",
+      "short_name": "Alert",
+      "description": "Trigger emergency alert",
+      "url": "./index.html?action=alert",
+      "icons": [
+        {
+          "src": "icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }
