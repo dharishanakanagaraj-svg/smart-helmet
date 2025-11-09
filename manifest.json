@@ -31,7 +31,11 @@
       "form_factor": "narrow"
     }
   ],
-  "categories": ["emergency", "safety", "utilities"],
+  "categories": [
+    "emergency",
+    "safety",
+    "utilities"
+  ],
   "shortcuts": [
     {
       "name": "Emergency Alert",
@@ -45,5 +49,12 @@
         }
       ]
     }
+  ],
+  "display_override": [
+    "fullscreen",
+    "browser",
+    "minimal-ui",
+    "standalone",
+    "window-controls-overlay"
   ]
 }
