@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Smart Helmet Emergency Alert System - GPS Tracking & Emergency SMS">
+    <meta name="theme-color" content="#2C3E50">
+    <title>Smart Helmet Alert System</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%232C3E50' width='192' height='192'/><text x='96' y='140' font-size='120' fill='%2300D084' text-anchor='middle' font-weight='bold'>SH</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%232C3E50' width='180' height='180'/><text x='90' y='135' font-size='100' fill='%2300D084' text-anchor='middle' font-weight='bold'>SH</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2C3E50;
+            --accent: #00D084;
+            --alert: #E74C3C;
+            --warning: #F39C12;
+            --success: #27AE60;
+            --info: #3498DB;
+            --text: #34495E;
+            --bg: #ECF0F1;
+            --card-bg: #FFFFFF;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --radius: 12px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, #1a252f 100%);
+            color: white;
+            padding: 16px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            z-index: 100;
+        }
+
+        header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 80px;
+            background-color: var(--bg);
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 70px;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            border-top: 2px solid var(--accent);
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            color: #999;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            padding: 10px 0;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+            background: rgba(0, 208, 132, 0.1);
+        }
+
+        .nav-item span {
+            font-size: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .status-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px;
+            border-radius: var(--radius);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 12px;
+        }
+
+        .status-badge.connected {
+            background: rgba(0, 208, 132, 0.3);
+            color: var(--accent);
+            border: 2px solid var(--accent);
+        }
+
+        .status-badge.disconnected {
+            background: rgba(231, 76, 60, 0.3);
+            color: var(--alert);
+            border: 2px solid var(--alert);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent) 0%, #00a86b 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 208, 132, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--info);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--alert);
+            color: white;
+        }
+
+        .btn-small {
+            padding: 8px 12px;
+            font-size: 14px;
+            width: auto;
+            margin: 0;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: var(--radius);
+            font-size: 16px;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .contact-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: white;
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .contact-info {
+            flex: 1;
+        }
+
+        .contact-name {
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .contact-phone {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .contact-badge {
+            background: var(--accent);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-left: 12px;
+        }
+
+        .contact-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .alert-banner {
+            background: linear-gradient(135deg, var(--alert) 0%, #c0392b 100%);
+            color: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.8;
+            }
+        }
+
+        .alert-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .alert-details {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            width: 100%;
+            max-width: 100%;
+            border-radius: var(--radius) var(--radius) 0 0;
+            padding: 24px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--bg);
+        }
+
+        .modal-header h2 {
+            font-size: 22px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--accent) 0%, #00a86b 100%);
+            color: white;
+            padding: 16px;
+            border-radius: var(--radius);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-top: 4px;
+        }
+
+        .slider-container {
+            margin: 20px 0;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 208, 132, 0.4);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0, 208, 132, 0.4);
+        }
+
+        .toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+        }
+
+        .toggle-switch {
+            width: 50px;
+            height: 28px;
+            background: #ddd;
+            border-radius: 14px;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: var(--accent);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: left 0.3s ease;
+        }
+
+        .toggle-switch.active::after {
+            left: 24px;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 80px;
+            left: 16px;
+            right: 16px;
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            color: white;
+            font-weight: 600;
+            z-index: 999;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .notification.success {
+            background: var(--success);
+        }
+
+        .notification.error {
+            background: var(--alert);
+        }
+
+        .notification.info {
+            background: var(--info);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 208, 132, 0.2);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .map-container {
+            width: 100%;
+            height: 400px;
+            background: #e0e0e0;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #999;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .map-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .log-item {
+            padding: 16px;
+            background: white;
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            border-left: 4px solid var(--accent);
+        }
+
+        .log-time {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 8px;
+        }
+
+        .log-location {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .log-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .log-status.success {
+            background: rgba(39, 174, 96, 0.2);
+            color: var(--success);
+        }
+
+        .log-status.failed {
+            background: rgba(231, 76, 60, 0.2);
+            color: var(--alert);
+        }
+
+        .permission-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .permission-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .settings-section {
+            margin-bottom: 28px;
+        }
+
+        .settings-section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 12px;
+            }
+
+            .stat-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 20px;
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .permission-dialog {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .permission-dialog.active {
+            display: flex;
+        }
+
+        .permission-content {
+            background: white;
+            border-radius: var(--radius);
+            padding: 28px;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .permission-content h2 {
+            margin-bottom: 16px;
+            color: var(--primary);
+        }
+
+        .permission-content p {
+            margin-bottom: 28px;
+            color: #666;
+        }
+
+        .permission-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .badge-primary {
+            background: rgba(44, 62, 80, 0.1);
+            color: var(--primary);
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: var(--radius);
+            padding: 16px;
+            margin: 16px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+
+        .copy-btn {
+            padding: 8px 16px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 12px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>
+                <span>🏍️</span>
+                Smart Helmet Alert
+            </h1>
+        </header>
+
+        <div class="content">
+            <!-- DASHBOARD VIEW -->
+            <div id="dashboardView" class="view active">
+                <div class="container">
+                    <!-- Connection Status -->
+                    <div class="status-card">
+                        <div>Bluetooth Status</div>
+                        <div id="connectionStatus" style="font-size: 32px; margin: 12px 0;">📶</div>
+                        <div id="connectionText">Disconnected</div>
+                        <div class="status-badge disconnected" id="statusBadge">DISCONNECTED</div>
+                        <button class="btn btn-primary" style="margin-top: 16px;" onclick="showBluetoothModal()">
+                            🔗 Connect Bluetooth
+                        </button>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="stat-grid">
+                        <div class="stat-card">
+                            <div class="stat-number" id="gpsStatus">⏳</div>
+                            <div class="stat-label">GPS Signal</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="contactCount">0</div>
+                            <div class="stat-label">Contacts</div>
+                        </div>
+                    </div>
+
+                    <!-- Alert Banner (Hidden by default) -->
+                    <div id="alertBanner" class="alert-banner" style="display: none;">
+                        <div class="alert-title">🚨 EMERGENCY ALERT TRIGGERED</div>
+                        <div class="alert-details">
+                            <div id="alertTime"></div>
+                            <div id="alertLocation"></div>
+                            <div id="alertStatus"></div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <button class="btn btn-primary" onclick="testAlert()">
+                        ⚠️ Test Alert
+                    </button>
+                    <button class="btn btn-secondary" onclick="switchView('contactsView')">
+                        👥 Emergency Contacts
+                    </button>
+                    <button class="btn btn-secondary" onclick="switchView('mapView')">
+                        🗺️ View Map
+                    </button>
+                    <button class="btn btn-secondary" onclick="switchView('logsView')">
+                        📋 Alert Logs
+                    </button>
+
+                    <!-- Recent Alerts -->
+                    <h3 style="margin-top: 28px; margin-bottom: 16px;">Recent Alerts</h3>
+                    <div id="recentAlerts">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <div>No alerts yet</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EMERGENCY CONTACTS VIEW -->
+            <div id="contactsView" class="view">
+                <div class="container">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2>Emergency Contacts</h2>
+                        <span class="badge badge-primary" id="contactsCount">0/5</span>
+                    </div>
+
+                    <div id="contactsList">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">👥</div>
+                            <div>No contacts added yet</div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="showContactModal()">
+                        ➕ Add New Contact
+                    </button>
+                </div>
+            </div>
+
+            <!-- MAP VIEW -->
+            <div id="mapView" class="view">
+                <div class="container">
+                    <h2 style="margin-bottom: 16px;">GPS Tracking</h2>
+                    <div class="map-container">
+                        <div class="map-placeholder">
+                            <div>📍 Map View</div>
+                            <div style="font-size: 12px;">Current Location & Alert History</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Current Location</h3>
+                        <div style="margin-top: 12px; font-size: 14px;">
+                            <div>Latitude: <span id="currentLat">--</span></div>
+                            <div>Longitude: <span id="currentLon">--</span></div>
+                            <div style="margin-top: 12px; color: #999;">Last updated: <span id="lastUpdate">Never</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ALERT LOGS VIEW -->
+            <div id="logsView" class="view">
+                <div class="container">
+                    <h2 style="margin-bottom: 20px;">Alert History</h2>
+
+                    <div id="alertLogs">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <div>No alerts triggered yet</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SETTINGS VIEW -->
+            <div id="settingsView" class="view">
+                <div class="container">
+                    <h2 style="margin-bottom: 24px;">Settings</h2>
+
+                    <!-- Vibration Sensitivity -->
+                    <div class="settings-section">
+                        <div class="settings-section-title">⚡ Vibration Sensitivity</div>
+                        <div class="slider-container">
+                            <label>Threshold: <strong id="sensValue">500</strong></label>
+                            <input type="range" min="100" max="900" value="500" class="slider" id="sensitivitySlider" oninput="updateSensitivity(this.value)">
+                            <div style="font-size: 12px; color: #999; margin-top: 8px;">
+                                Low: 100 | Medium: 500 | High: 900
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alert Delay -->
+                    <div class="settings-section">
+                        <div class="settings-section-title">⏱️ Alert Delay</div>
+                        <div class="slider-container">
+                            <label>Delay: <strong id="delayValue">3</strong> seconds</label>
+                            <input type="range" min="1" max="10" value="3" class="slider" id="delaySlider" oninput="updateDelay(this.value)">
+                        </div>
+                    </div>
+
+                    <!-- Auto SMS -->
+                    <div class="settings-section">
+                        <div class="settings-section-title">📨 SMS Settings</div>
+                        <div class="toggle">
+                            <span>Auto Send SMS</span>
+                            <div class="toggle-switch active" id="autoSmsToggle" onclick="toggleAutoSms()"></div>
+                        </div>
+                    </div>
+
+                    <!-- Arduino Code -->
+                    <div class="settings-section">
+                        <div class="settings-section-title">🔧 Arduino Configuration</div>
+                        <p style="font-size: 14px; color: #666; margin-bottom: 16px;">
+                            Copy this code and paste it into your Arduino sketch:
+                        </p>
+                        <div class="code-block" id="arduinoCode">
+// Emergency Contacts Configuration
+String contact1 = "+919876543210";
+String contact2 = "+919876543211";
+String contact3 = "+919876543212";
+
+// Settings
+int vibrationThreshold = 500;
+int alertDelay = 3;
+                        </div>
+                        <button class="copy-btn" onclick="copyArduinoCode()">📋 Copy Code</button>
+                    </div>
+
+                    <!-- App Info -->
+                    <div class="settings-section">
+                        <div class="settings-section-title">ℹ️ About</div>
+                        <div style="font-size: 14px; color: #666;">
+                            <div>Smart Helmet Alert System</div>
+                            <div>Version 2.0.0</div>
+                            <div style="margin-top: 12px;">🎯 Stay Safe On The Road</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTTOM NAVIGATION -->
+        <div class="nav-bar">
+            <div class="nav-item active" data-view="dashboardView" onclick="switchView('dashboardView')">
+                <span>🏠</span>
+                <div>Home</div>
+            </div>
+            <div class="nav-item" data-view="contactsView" onclick="switchView('contactsView')">
+                <span>👥</span>
+                <div>Contacts</div>
+            </div>
+            <div class="nav-item" data-view="mapView" onclick="switchView('mapView')">
+                <span>🗺️</span>
+                <div>Map</div>
+            </div>
+            <div class="nav-item" data-view="logsView" onclick="switchView('logsView')">
+                <span>📋</span>
+                <div>Logs</div>
+            </div>
+            <div class="nav-item" data-view="settingsView" onclick="switchView('settingsView')">
+                <span>⚙️</span>
+                <div>Settings</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BLUETOOTH MODAL -->
+    <div id="bluetoothModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Connect Bluetooth Device</h2>
+                <button class="close-btn" onclick="closeBluetoothModal()">×</button>
+            </div>
+
+            <div id="bluetoothPermission" style="display: none;">
+                <div class="permission-dialog active">
+                    <div class="permission-content">
+                        <h2>Bluetooth Permission</h2>
+                        <p>Smart Helmet needs Bluetooth permission to connect to your HC-05 module.</p>
+                        <div class="permission-buttons">
+                            <button class="btn btn-secondary" onclick="denyBluetoothPermission()">Deny</button>
+                            <button class="btn btn-primary" onclick="allowBluetoothPermission()">Allow</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="bluetoothScanning" style="display: none;">
+                <p style="text-align: center; margin: 40px 0;">
+                    <div class="loading-spinner"></div>
+                    <div style="margin-top: 16px;">Searching for devices...</div>
+                </p>
+            </div>
+
+            <div id="bluetoothDevices" style="display: none;">
+                <p style="margin-bottom: 16px; color: #666;">Select a device to connect:</p>
+                <div id="devicesList">
+                    <div class="card" onclick="selectDevice('HC-05', '00:11:22:33:44:55')">
+                        <div style="font-weight: 600;">HC-05</div>
+                        <div style="font-size: 12px; color: #999;">Bluetooth Module</div>
+                    </div>
+                    <div class="card" onclick="selectDevice('HC-06', 'AA:BB:CC:DD:EE:FF')">
+                        <div style="font-weight: 600;">HC-06</div>
+                        <div style="font-size: 12px; color: #999;">Bluetooth Module</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="bluetoothConnecting" style="display: none;">
+                <p style="text-align: center; margin: 40px 0;">
+                    <div class="loading-spinner"></div>
+                    <div style="margin-top: 16px;" id="connectingDevice">Connecting...</div>
+                </p>
+            </div>
+
+            <div id="bluetoothSuccess" style="display: none;">
+                <div style="text-align: center; padding: 40px 20px;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">✅</div>
+                    <h3 id="successDevice">Connected!</h3>
+                    <p style="color: #666; margin: 16px 0;">You are now connected to your HC-05 module.</p>
+                    <button class="btn btn-primary" onclick="closeBluetoothModal()">Continue</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTACT MODAL -->
+    <div id="contactModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="contactModalTitle">Add Contact</h2>
+                <button class="close-btn" onclick="closeContactModal()">×</button>
+            </div>
+
+            <form onsubmit="saveContact(event)">
+                <div class="form-group">
+                    <label for="contactName">Contact Name</label>
+                    <input type="text" id="contactName" required placeholder="e.g., Dad, Mom, Brother">
+                </div>
+
+                <div class="form-group">
+                    <label for="contactPhone">Phone Number</label>
+                    <input type="tel" id="contactPhone" required placeholder="+91 9876543210">
+                </div>
+
+                <button type="submit" class="btn btn-primary">✅ Save Contact</button>
+                <button type="button" class="btn btn-secondary" onclick="closeContactModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed'));
+        }
+    </script>
+</body>
+</html>
