@@ -8,7 +8,7 @@ A comprehensive Progressive Web App for managing emergency contacts, tracking GP
 âœ… **Bluetooth Connectivity**
 - Connect to HC-05 Bluetooth module
 - Real-time device status monitoring
-- Automatic permission handling
+- Automatic permission handling 
 
 âœ… **Emergency Contact Management**
 - Add/edit/delete up to 5 emergency contacts
